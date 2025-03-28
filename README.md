@@ -60,12 +60,19 @@ AUDIO_VOICE_ID=zh-CN-XiaoxiaoNeural
 
 ```bash
 # 开发工作流
+pnpm opennext
 pnpm dev:workflow
 # curl "http://localhost:8787/workflow" # 手动触发工作流
 
 # 开发 Web 页面
 pnpm dev
 ```
+
+> 注意：
+>
+> 开发 web 页面时，如果出现 getCloudflareContext 报错，需要先注释掉 wrangler.json 中 workflows 相关配置。本地运行工作流时，则需要恢复该配置
+>
+> 本地运行工作流时，edge tts 转换音频可能并不会执行，会卡住，它依赖于 Cloudflare Workers 环境。建议直接注释该部分代码进行 mock 数据
 
 ## 部署
 
@@ -74,8 +81,18 @@ pnpm dev
 1. 创建 R2 文件存储桶, 绑定域名后，修改 `NEXT_STATIC_HOST` 变量。
 2. 创建 KV 存储空间
 3. 修改 `wrangler.json` 中 KV 和 R2 的值
+4. 使用 `wrangler` 脚手架配置线上环境的环境变量:
 
 ```bash
+wrangler secret put OPENAI_API_KEY
+wrangler secret put OPENAI_BASE_URL
+wrangler secret put OPENAI_MODEL
+wrangler secret put NEXT_STATIC_HOST # 绑定域名后，修改为绑定域名
+wrangler secret put NEXTJS_ENV # production
+```
+
+```bash
+# 记得恢复注释：wrangler.json中的 workflows 相关配置
 pnpm deploy
 ```
 
