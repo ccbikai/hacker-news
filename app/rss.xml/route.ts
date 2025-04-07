@@ -38,10 +38,14 @@ export async function GET() {
   for (const post of posts) {
     const audioInfo = await env.HACKER_NEWS_R2.head(post.audio)
 
+    const links = post.stories.map(s => `<li><a href="${s.hackerNewsUrl || s.url || ""}">${s.title || ""}</a></li>`).join("")
+    const linkContent = `<p>相关链接：</p><ul>${links}</ul>`
+    const content = `<div style="word-break: break-all;white-space: pre-line;">${post.podcastContent || ''}${linkContent}</div>`
+
     feed.addItem({
       title: post.title || '',
       description: post.introContent || post.podcastContent || '',
-      content: `<div style="word-break: break-all;white-space: pre-line;">${post.podcastContent || ''}</div>`,
+      content,
       url: `https://${host}/post/${post.date}`,
       guid: `https://${host}/post/${post.date}`,
       date: new Date(post.updatedAt || post.date),
