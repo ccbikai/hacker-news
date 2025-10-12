@@ -41,13 +41,13 @@ export async function GET() {
   const pastDays = getPastDays(10)
   const posts = (await Promise.all(
     pastDays.map(async (day) => {
-      const post = await env.HACKER_NEWS_KV.get(`content:${runEnv}:hacker-news:${day}`, 'json')
+      const post = await env.AUTO_PODCAST_GENERATOR_KV.get(`content:${runEnv}:hacker-news:${day}`, 'json')
       return post as unknown as Article
     }),
   )).filter(Boolean)
 
   for (const post of posts) {
-    const audioInfo = await env.HACKER_NEWS_R2.head(post.audio)
+    const audioInfo = await env.AUTO_PODCAST_GENERATOR_R2.head(post.audio)
 
     const links = post.stories.map(s => `<li><a href="${s.hackerNewsUrl || s.url || ''}">${s.title || ''}</a></li>`).join('')
     const linkContent = `<p><b>相关链接：</b></p><ul>${links}</ul>`

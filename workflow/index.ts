@@ -19,9 +19,9 @@ interface Env extends CloudflareEnv {
   OPENAI_MAX_TOKENS?: string
   JINA_KEY?: string
   WORKER_ENV?: string
-  HACKER_NEWS_WORKER_URL: string
-  HACKER_NEWS_R2_BUCKET_URL: string
-  HACKER_NEWS_WORKFLOW: Workflow
+  AUTO_PODCAST_GENERATOR_WORKER_URL: string
+  AUTO_PODCAST_GENERATOR_R2_BUCKET_URL: string
+  AUTO_PODCAST_GENERATOR_WORKFLOW: Workflow
   BROWSER: Fetcher
 }
 
@@ -85,7 +85,7 @@ export class HackerNewsWorkflow extends WorkflowEntrypoint<Env, Params> {
 
       await step.do(`store story ${story.id} summary`, retryConfig, async () => {
         const storyKey = `tmp:${event.instanceId}:story:${story.id}`
-        await this.env.HACKER_NEWS_KV.put(storyKey, `<story>${text}</story>`, { expirationTtl: 3600 })
+        await this.env.AUTO_PODCAST_GENERATOR_KV.put(storyKey, `<story>${text}</story>`, { expirationTtl: 3600 })
         return storyKey
       })
 
@@ -96,7 +96,7 @@ export class HackerNewsWorkflow extends WorkflowEntrypoint<Env, Params> {
       const summaries: string[] = []
       for (const story of stories) {
         const storyKey = `tmp:${event.instanceId}:story:${story.id}`
-        const summary = await this.env.HACKER_NEWS_KV.get(storyKey)
+        const summary = await this.env.AUTO_PODCAST_GENERATOR_KV.get(storyKey)
         if (summary) {
           summaries.push(summary)
         }
@@ -176,11 +176,11 @@ export class HackerNewsWorkflow extends WorkflowEntrypoint<Env, Params> {
         }
 
         const audioKey = `tmp/${podcastKey}-${index}.mp3`
-        const audioUrl = `${this.env.HACKER_NEWS_R2_BUCKET_URL}/${audioKey}?t=${Date.now()}`
+        const audioUrl = `${this.env.AUTO_PODCAST_GENERATOR_R2_BUCKET_URL}/${audioKey}?t=${Date.now()}`
 
-        await this.env.HACKER_NEWS_R2.put(audioKey, audio)
+        await this.env.AUTO_PODCAST_GENERATOR_R2.put(audioKey, audio)
 
-        this.env.HACKER_NEWS_KV.put(`tmp:${event.instanceId}:audio:${index}`, audioUrl, { expirationTtl: 3600 })
+        this.env.AUTO_PODCAST_GENERATOR_KV.put(`tmp:${event.instanceId}:audio:${index}`, audioUrl, { expirationTtl: 3600 })
         return audioUrl
       })
     }
@@ -188,7 +188,7 @@ export class HackerNewsWorkflow extends WorkflowEntrypoint<Env, Params> {
     const audioFiles = await step.do('collect all audio files', retryConfig, async () => {
       const audioUrls: string[] = []
       for (const [index] of conversations.entries()) {
-        const audioUrl = await this.env.HACKER_NEWS_KV.get(`tmp:${event.instanceId}:audio:${index}`)
+        const audioUrl = await this.env.AUTO_PODCAST_GENERATOR_KV.get(`tmp:${event.instanceId}:audio:${index}`)
         if (audioUrl) {
           audioUrls.push(audioUrl)
         }
@@ -202,10 +202,10 @@ export class HackerNewsWorkflow extends WorkflowEntrypoint<Env, Params> {
         return
       }
 
-      const blob = await concatAudioFiles(audioFiles, this.env.BROWSER, { workerUrl: this.env.HACKER_NEWS_WORKER_URL })
-      await this.env.HACKER_NEWS_R2.put(podcastKey, blob)
+      const blob = await concatAudioFiles(audioFiles, this.env.BROWSER, { workerUrl: this.env.AUTO_PODCAST_GENERATOR_WORKER_URL })
+      await this.env.AUTO_PODCAST_GENERATOR_R2.put(podcastKey, blob)
 
-      const podcastAudioUrl = `${this.env.HACKER_NEWS_R2_BUCKET_URL}/${podcastKey}?t=${Date.now()}`
+      const podcastAudioUrl = `${this.env.AUTO_PODCAST_GENERATOR_R2_BUCKET_URL}/${podcastKey}?t=${Date.now()}`
       console.info('podcast audio url', podcastAudioUrl)
       return podcastAudioUrl
     })
@@ -213,7 +213,7 @@ export class HackerNewsWorkflow extends WorkflowEntrypoint<Env, Params> {
     console.info('save podcast to r2 success')
 
     await step.do('save content to kv', retryConfig, async () => {
-      await this.env.HACKER_NEWS_KV.put(contentKey, JSON.stringify({
+      await this.env.AUTO_PODCAST_GENERATOR_KV.put(contentKey, JSON.stringify({
         date: today,
         title: `${podcastTitle} ${today}`,
         stories,
@@ -235,13 +235,13 @@ export class HackerNewsWorkflow extends WorkflowEntrypoint<Env, Params> {
       // Clean up story temporary data
       for (const story of stories) {
         const storyKey = `tmp:${event.instanceId}:story:${story.id}`
-        deletePromises.push(this.env.HACKER_NEWS_KV.delete(storyKey))
+        deletePromises.push(this.env.AUTO_PODCAST_GENERATOR_KV.delete(storyKey))
       }
 
       // Clean up audio temporary data
       for (const [index] of conversations.entries()) {
         const audioKey = `tmp:${event.instanceId}:audio:${index}`
-        deletePromises.push(this.env.HACKER_NEWS_KV.delete(audioKey))
+        deletePromises.push(this.env.AUTO_PODCAST_GENERATOR_KV.delete(audioKey))
       }
 
       await Promise.all(deletePromises).catch(console.error)
@@ -249,7 +249,7 @@ export class HackerNewsWorkflow extends WorkflowEntrypoint<Env, Params> {
       for (const index of audioFiles.keys()) {
         try {
           await Promise.any([
-            this.env.HACKER_NEWS_R2.delete(`tmp/${podcastKey}-${index}.mp3`),
+            this.env.AUTO_PODCAST_GENERATOR_R2.delete(`tmp/${podcastKey}-${index}.mp3`),
             new Promise(resolve => setTimeout(resolve, 200)),
           ])
         }

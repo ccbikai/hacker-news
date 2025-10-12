@@ -4,7 +4,7 @@
  */
 {
   "$schema": "../node_modules/wrangler/config-schema.json",
-  "name": "hacker-news-worker",
+  "name": "auto-podcast-generator-worker",
   "main": "./index.ts",
   "compatibility_date": "2025-04-12",
   "compatibility_flags": [
@@ -28,21 +28,21 @@
   },
   "workflows": [
     {
-      "name": "hacker-news-workflow",
-      "binding": "HACKER_NEWS_WORKFLOW",
+      "name": "auto-podcast-generator-workflow",
+      "binding": "AUTO_PODCAST_GENERATOR_WORKFLOW",
       "class_name": "HackerNewsWorkflow"
     }
   ],
   "kv_namespaces": [
     {
-      "binding": "HACKER_NEWS_KV",
-      "id": "4d458dadadea42f8b8198fe3e29f858d"
+      "binding": "AUTO_PODCAST_GENERATOR_KV",
+      "id": "fd947dc9604e4e5f9090687fa58e1b93"
     }
   ],
   "r2_buckets": [
     {
-      "binding": "HACKER_NEWS_R2",
-      "bucket_name": "hacker-news"
+      "binding": "AUTO_PODCAST_GENERATOR_R2",
+      "bucket_name": "auto-podcast-generator"
     }
   ]
 }

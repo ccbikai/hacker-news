@@ -4,7 +4,7 @@
  */
 {
   "$schema": "node_modules/wrangler/config-schema.json",
-  "name": "hacker-news",
+  "name": "auto-podcast-generator",
   "main": ".open-next/worker.js",
   "compatibility_date": "2025-04-12",
   "compatibility_flags": [
@@ -21,24 +21,24 @@
   "keep_vars": true,
   "kv_namespaces": [
     {
-      "binding": "HACKER_NEWS_KV",
-      "id": "4d458dadadea42f8b8198fe3e29f858d"
+      "binding": "AUTO_PODCAST_GENERATOR_KV",
+      "id": "fd947dc9604e4e5f9090687fa58e1b93"
     }
   ],
   "r2_buckets": [
     {
-      "binding": "HACKER_NEWS_R2",
-      "bucket_name": "hacker-news"
+      "binding": "AUTO_PODCAST_GENERATOR_R2",
+      "bucket_name": "auto-podcast-generator"
     },
     {
       "binding": "NEXT_INC_CACHE_R2_BUCKET",
-      "bucket_name": "hacker-news"
+      "bucket_name": "auto-podcast-generator"
     }
   ],
   "services": [
     {
       "binding": "WORKER_SELF_REFERENCE",
-      "service": "hacker-news"
+      "service": "auto-podcast-generator-worker"
     }
   ],
   "durable_objects": {
@@ -60,11 +60,16 @@
   "migrations": [
     {
       "tag": "v1",
-      "new_sqlite_classes": ["DOQueueHandler", "DOShardedTagCache"]
+      "new_sqlite_classes": [
+        "DOQueueHandler",
+        "DOShardedTagCache"
+      ]
     },
     {
       "tag": "v2",
-      "new_sqlite_classes": ["BucketCachePurge"]
+      "new_sqlite_classes": [
+        "BucketCachePurge"
+      ]
     }
   ]
 }

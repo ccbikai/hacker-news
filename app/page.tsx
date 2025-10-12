@@ -11,7 +11,7 @@ export default async function Home() {
   const pastDays = getPastDays(keepDays)
   const posts = (await Promise.all(
     pastDays.map(async (day) => {
-      const post = await env.HACKER_NEWS_KV.get(`content:${runEnv}:hacker-news:${day}`, 'json')
+      const post = await env.AUTO_PODCAST_GENERATOR_KV.get(`content:${runEnv}:hacker-news:${day}`, 'json')
       return post as unknown as Article
     }),
   )).filter(Boolean)

@@ -12,7 +12,7 @@ export async function generateMetadata({ params }: { params: Promise<{ date: str
   const runEnv = env.NEXTJS_ENV
   const date = (await params).date
 
-  const post = (await env.HACKER_NEWS_KV.get(`content:${runEnv}:hacker-news:${date}`, 'json')) as unknown as Article
+  const post = (await env.AUTO_PODCAST_GENERATOR_KV.get(`content:${runEnv}:hacker-news:${date}`, 'json')) as unknown as Article
 
   if (!post) {
     return notFound()
@@ -47,7 +47,7 @@ export default async function PostPage({ params }: { params: Promise<{ date: str
 
   const date = (await params).date
 
-  const post = (await env.HACKER_NEWS_KV.get(`content:${runEnv}:hacker-news:${date}`, 'json')) as unknown as Article
+  const post = (await env.AUTO_PODCAST_GENERATOR_KV.get(`content:${runEnv}:hacker-news:${date}`, 'json')) as unknown as Article
 
   if (!post) {
     return notFound()
